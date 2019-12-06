@@ -7,10 +7,10 @@
   - 取り急ぎ8bit以下用として作っていたためです
   - encodeだけならできることに気付いたので入力サイズチェックをコメントアウトしました
 
-    >>> import facrtorize
 
 SAT
 
+    >>> import facrtorize
     >>> s = factorize.sat(143)   # 143を素因数分解
     >>> s.setbitlen(4,4)         # 4bit×4bit以下の回答を探します
     >>> s.setcnfsat()            # s.clausesに節が格納されます　変数の数はs.varsize
@@ -22,7 +22,8 @@ SAT
 
 QUBO
 
-    >>> q = f.annealer(143)      # 143を素因数分解
+    >>> import facrtorize
+    >>> q = facrtorize.annealer(143)      # 143を素因数分解
     >>> q.setbitlen(4,4)         # 4bit×4bit以下の回答を探します
     >>> q.setqubo()              # s.quboにQUBOmatrixが格納されます
     >>> q.run_sqa()              # wildqatのSQAを走らせます　q.rum_qa()もあります
