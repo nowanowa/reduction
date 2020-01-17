@@ -20,7 +20,7 @@ def HA(x,y,sum,carry,h=0):
 # SAT encode of Full Adder
 #   sum <-> x XOR y XOR z
 # carry <-> (x AND y) OR (y AND z) OR (z AND x)
-def FA(x,y,z,sum,carry,h=0):
+def FAprev(x,y,z,sum,carry,h=0):
   newvarcnt = 0
   clauses = []
   # XOR
@@ -52,11 +52,59 @@ def FA(x,y,z,sum,carry,h=0):
   clauses.append([-c,x])
   return newvarcnt, clauses
 
+# SAT encode of Full Adder
+# x-|H|-c0--------|AND)-carry
+# y-|A|-s0-|H|-c1-'
+# z--------|A|----------sum
+def FA(x,y,z,sum,carry,h=0):
+  newvarcnt = 0
+  clauses = []
+  c0 = h + newvarcnt + 1
+  s0 = h + newvarcnt + 2
+  c1 = h + newvarcnt + 3
+  newvarcnt += 3
+  # HA0
+  ha0 = HA(x,y,s0,c0,h+newvarcnt)
+  newvarcnt += ha0[0]
+  clauses += ha0[1]
+  # HA1
+  ha1 = HA(s0,z,sum,c1,h+newvarcnt)
+  newvarcnt += ha1[0]
+  clauses += ha1[1]
+  # AND
+  clauses.append([carry,-c0,-c1])
+  clauses.append([-carry,c0])
+  clauses.append([-carry,c1])
+  return newvarcnt, clauses
+
 # SAT encode of <->
 def IFF(x,y):
   clauses = []
   clauses.append([x,-y])
   clauses.append([-x,y])
+  return 0, clauses
+
+# SAT encode of 
+def NOT(x,y):
+  clauses = []
+  clauses.append([x,y])
+  clauses.append([-x,-y])
+  return 0, clauses
+
+# SAT encode of x,y =|)- z
+def AND(x,y,z):
+  clauses = []
+  clauses.append([z,-x,-y])
+  clauses.append([-z,x])
+  clauses.append([-z,y])
+  return 0, clauses
+
+# SAT encode of x,y =)>- z
+def OR(x,y,z):
+  clauses = []
+  clauses.append([-z,x,y])
+  clauses.append([z,-x])
+  clauses.append([z,-y])
   return 0, clauses
 
 # SAT encode of adder
@@ -148,6 +196,27 @@ def multiplier(p=[1,2,3,4],q=[5,6,7,8],P=[9,10,11,12,13,14,15,16],h=16):
     else:
       clauses += [[-P[k]]]
   return newvarcnt, clauses
+
+# SAT encode of (z = b ? x : 0)
+def selector0(b=9,x=[1,2,3,4],z=[5,6,7,8],h=9):
+  clauses = []
+  for i in range(len(x)):
+    clauses += AND(x[i],b,z[i])[1]
+  return 0, clauses
+
+# SAT encode of (z = b ? x : 1)
+def selector1(b=9,x=[1,2,3,4],z=[5,6,7,8],h=9):
+  clauses = []
+  for i in range(len(x)):
+    clauses += AND(x[i],b,z[i])[1] if i != 0 else OR(x[i],-b,z[i])
+  return 0, clauses
+
+# SAT encode of MOD/DIV
+
+# SAT encode of Montgomery Reduction
+#def MontRed():
+# SAT encode of Montgomery Multiplier
+#def MontMul():
 
 # output dimacs file of CNF
 def output_dimacs(varsize, clauses, comments, dimacsfile='temp.dimacs'):
